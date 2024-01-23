@@ -1,5 +1,5 @@
 const validator = require('validator');
-const Libro = require('./libroModel');
+const Libro = require('./model');
 const multer = require('multer');
 const upload = require('./multer_config');
 const fs = require('fs');
@@ -355,7 +355,7 @@ const controller = {
 
     getPhoto: (req, res) => {
         var file = req.params.filename;
-        var pathFile = path.join(__dirname, 'uploads', file); 
+        var pathFile = path.join(__dirname, '..', 'uploads', file);
     
         if (fs.existsSync(pathFile)) {
             return res.sendFile(path.resolve(pathFile));
