@@ -82,17 +82,13 @@ class UpdateBook extends Component {
             try {
                 const id = this.props.match.params.id;
 
-                // Verificar si se ha cargado un nuevo archivo de imagen
                 if (this.state.portada && this.state.portada.name) {
-                    // Crear un objeto FormData y agregar el nuevo archivo
                     const formData = new FormData();
                     formData.append('file', this.state.portada, this.state.portada.name);
 
-                    // Enviar el nuevo archivo de imagen al servidor
                     await axios.post(`${this.url}/libro/upload/${id}`, formData);
                 }
 
-                // Crear un objeto que contenga solo los datos del libro (sin la imagen existente)
                 const libroData = {
                     ISBN: this.state.libro.ISBN,
                     nombreLibro: this.state.libro.nombreLibro,
@@ -101,10 +97,8 @@ class UpdateBook extends Component {
                     paginas: this.state.libro.paginas,
                 };
 
-                // Enviar los datos del libro actualizados al servidor
                 const res = await axios.put(`${this.url}/libro/${id}`, libroData);
 
-                // Manejar la respuesta del servidor
                 this.handleLibroUpdate(res);
             } catch (error) {
                 console.error('Error updating libro:', error);
