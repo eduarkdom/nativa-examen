@@ -16,7 +16,7 @@ class BookSearch extends Component {
     searchByField = (e) => {
         e.preventDefault();
         const { field, search } = this.state;
-        
+
         this.setState({
             status: 'loading',
         });
@@ -48,7 +48,7 @@ class BookSearch extends Component {
         }
 
         return (
-            <div>
+            <div className='containerHtml'>
                 <form onSubmit={this.searchByField}>
                     <table>
                         <tr>

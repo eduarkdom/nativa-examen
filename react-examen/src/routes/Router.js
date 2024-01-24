@@ -13,7 +13,9 @@ class Router extends Component {
     render() {
         return (
             <BrowserRouter>
-                <Menu />
+            <Menu />
+            <div className='container'>
+                
                 <Switch>
                     <Route exact path="/" component={Index} />
                     <Route exact path="/inicio" component={Index} />
@@ -24,6 +26,7 @@ class Router extends Component {
                     <Route path="/libro/search" component={BookSearch} />
                     <Route path="*" component={NotFound} />
                 </Switch>
+            </div>
             </BrowserRouter>
         );
     }

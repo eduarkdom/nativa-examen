@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import axios from 'axios';
 import URL from '../common/Global';
 
@@ -34,7 +34,7 @@ class BookList extends Component {
 
     render() {
         return (
-            <div>
+            <div className='containerHtml'>
                 {this.state.status === 'success' && (
                     <table border="1">
                         <thead>
@@ -60,7 +60,9 @@ class BookList extends Component {
                                     <td>{libro.autor}</td>
                                     <td>{libro.editorial}</td>
                                     <td>
-                                        <Link to={`/libro/detail/${libro._id}`}>Detalles</Link>
+                                        <div className='btnDetail'>
+                                            <NavLink to={`/libro/detail/${libro._id}`}>Detalles</NavLink>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

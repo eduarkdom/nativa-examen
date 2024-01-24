@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { Redirect } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import axios from 'axios';
 import URL from '../common/Global';
 import SimpleReactValidator from 'simple-react-validator';
 
-class NewLibro extends Component {
+class NewBook extends Component {
     constructor(props) {
         super(props);
 
@@ -31,123 +31,150 @@ class NewLibro extends Component {
 
         this.validator = new SimpleReactValidator({
             validators: {
-                
-                isbn: { 
+                isbn: {
                     message: 'El ISBN debe tener el formato correcto en números (XXX-XXXXXXXXXX)',
-                    rule: (val, params, validator) => {
-                        return /^[0-9]{3}-[0-9]{10}$/.test(val);
-                    },
+                    rule: (val, params, validator) => /^[0-9]{3}-[0-9]{10}$/.test(val),
                 },
             },
         });
     }
 
+    _isMounted = false;
+
+    componentDidMount() {
+        this._isMounted = true;
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
+    }
+
     changeState = () => {
-        const ISBNValue = this.ISBNRef?.current?.value || '';
-        const nombreLibroValue = this.nombreLibroRef?.current?.value || '';
-        const autorValue = this.autorRef?.current?.value || '';
-        const editorialValue = this.editorialRef?.current?.value || '';
-        const paginasValue = this.paginasRef?.current?.value || '';
+        const getValueFromRef = (ref) => ref?.current?.value || '';
 
         this.setState({
             libro: {
-                ISBN: ISBNValue,
-                nombreLibro: nombreLibroValue,
-                autor: autorValue,
-                editorial: editorialValue,
+                ISBN: getValueFromRef(this.ISBNRef),
+                nombreLibro: getValueFromRef(this.nombreLibroRef),
+                autor: getValueFromRef(this.autorRef),
+                editorial: getValueFromRef(this.editorialRef),
                 portada: this.portadaRef?.current?.value || null,
-                paginas: parseInt(paginasValue, 10),
+                paginas: parseInt(getValueFromRef(this.paginasRef), 10),
             },
         });
     };
 
     fileChange = (e) => {
+        const file = e.target.files[0];
         this.setState({
-            portada: e.target.files[0],
+            portada: file || null,
         });
     };
 
-    newLibro = (e) => {
+    validateAndUploadPortada = async (id) => {
+        if (this.state.portada && this.state.portada.name) {
+            const formData = new FormData();
+            formData.append('file', this.state.portada, this.state.portada.name);
+
+            try {
+                const res = await axios.post(`${this.url}/libro/upload/${id}`, formData);
+                return res.data.status === 'success';
+            } catch (error) {
+                console.error('Error uploading portada:', error);
+                return false;
+            }
+        } else {
+            return true;
+        }
+    };
+
+
+
+
+    handleLibroCreation = (res) => {
+        console.log('soy log 1');
+        const { status } = res.data;
+        if (this._isMounted) {
+            if (status === 'success') {
+                const newBook = res.data.libro;
+                this.setState({
+                    libro: newBook,
+                    status: 'waiting',
+                });
+                console.log('soy log 2');
+
+                if (this.state.portada !== null) {
+                    const id = newBook._id;
+                    this.validateAndUploadPortada(id)
+                        .then(uploadStatus => {
+                            console.log('soy log 3');
+                            if (this._isMounted) {
+                                this.setState({
+                                    status: uploadStatus ? 'success' : 'error',
+                                    force: uploadStatus,
+                                });
+                                console.log('soy log 4');
+                            }
+                        });
+                    console.log('soy log 5');
+                } else {
+                    this.setState({
+                        status: 'success',
+                    });
+                    console.log('soy log 6');
+                }
+                console.log('soy log 7');
+            } else {
+                if (this._isMounted) {
+                    this.setState({
+                        status: 'error',
+                    });
+                }
+                console.log('soy log 8');
+            }
+            console.log('soy log 9');
+            window.alert('Libro Creado');
+            this.props.history.push('/');
+        }
+    };
+
+    newBook = async (e) => {
         e.preventDefault();
         this.changeState();
 
         if (this.validator.allValid()) {
-            axios.post(this.url + "/libro", this.state.libro)
-                .then(res => {
-                    if (res.data.status === 'success') {
-                        const newLibro = res.data.libro;
-                        this.setState({
-                            libro: newLibro,
-                            status: 'waiting'
-                        });
-
-                        if (this.state.portada !== null) {
-                            const id = newLibro._id;
-                            const formData = new FormData();
-                            formData.append('file', this.state.portada, this.state.portada.name);
-
-                            axios.post(this.url + "/libro/upload/" + id, formData)
-                                .then(res => {
-                                    if (res.data.status === 'success') {
-                                        this.setState({
-                                            status: 'success',
-                                            force: true
-                                        });
-                                        window.alert('Libro Creado');
-                                    } else {
-                                        this.setState({
-                                            status: 'error'
-                                        });
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error uploading portada:', error);
-                                    this.setState({
-                                        status: 'error'
-                                    });
-                                });
-                        } else {
-                            this.setState({
-                                status: 'success',
-                                force: true
-                            });
-                            window.alert('Libro Creado');
-                        }
-                    } else {
-                        this.setState({
-                            status: 'error'
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error creating libro:', error);
-                    this.setState({
-                        status: 'error'
-                    });
+            try {
+                const res = await axios.post(`${this.url}/libro`, this.state.libro);
+                this.handleLibroCreation(res);
+            } catch (error) {
+                console.log('soy log 10');
+                console.error('Error creating libro:', error);
+                this.setState({
+                    status: 'error',
                 });
+            }
+            console.log('soy log 11');
         } else {
+            console.log('soy log 12');
             this.validator.showMessages();
             this.forceUpdate();
             this.setState({
-                status: 'error'
+                status: 'error',
             });
         }
+        console.log('soy log 13');
     };
 
     render() {
-        if (this.state.force) {
-            window.alert('Libro Creado');
-            return <Redirect to="/inicio" />;
-        }
         return (
-            <div>
-                <form onSubmit={this.newLibro}>
+            <div className='containerHtml'>
+                <form onSubmit={this.newBook}>
                     <table>
                         <tbody>
                             <tr>
                                 <td>ISBN</td>
                                 <td>
-                                    <input type="text" name="ISBN" ref={this.ISBNRef} onChange={this.changeState} maxLength={14}/>
+                                    <input type="text" name="ISBN" ref={this.ISBNRef} onChange={this.changeState} maxLength={14} />
                                     {this.validator.message('ISBN', this.state.libro.ISBN, 'required|isbn')}
                                 </td>
                             </tr>
@@ -175,7 +202,7 @@ class NewLibro extends Component {
                             <tr>
                                 <td>Portada</td>
                                 <td>
-                                    <input type="file" name="portada" ref={this.portadaRef} onChange={this.fileChange} />
+                                    <input className='btnFile' type="file" name="portada" ref={this.portadaRef} onChange={this.fileChange} />
                                 </td>
                             </tr>
                             <tr>
@@ -194,16 +221,18 @@ class NewLibro extends Component {
                             </tr>
                             <tr>
                                 <td>
-                                    <input type="submit" value="Crear Libro" />
+                                </td>
+                                <td>
+                                    <input className='btnCrear' type="submit" value="Crear Libro" />
+
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </form>
-                {this.state.force && <Redirect to="/inicio" />}
             </div>
         );
     }
 }
 
-export default NewLibro;
+export default withRouter(NewBook);

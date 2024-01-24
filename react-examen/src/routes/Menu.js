@@ -5,7 +5,7 @@ class Menu extends Component {
     render() {
         var header = "BIENVENIDO A LA BIBLIOTECA";
         return (
-            <div>
+            <div className='menu'>
                 <h1>{header}</h1>
                 <ul>
                     <li><NavLink to="/">Inicio</NavLink></li>

@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import { NavLink, withRouter } from 'react-router-dom';
 import axios from 'axios';
 import URL from '../common/Global';
 
+
+
 class BookDetail extends Component {
     url = URL.API;
-
     state = {
         libro: {},
     };
@@ -29,12 +30,17 @@ class BookDetail extends Component {
             });
     };
 
+    goUpdate = (id) => {
+        this.props.history.push(`/libro/update/${id}`);
+    };
+    
+
     deleteLibroById = (id) => {
         axios.delete(`${this.url}/libro/${id}`)
             .then(res => {
-                if (res.data.status === 'success Libro Eliminado') {
+                if (res.data.status === 'success') {
                     window.alert('Libro Eliminado');
-                    this.props.history.push('/libro/list');
+                    this.props.history.push('/');
                 }
             })
             .catch(err => {
@@ -44,7 +50,7 @@ class BookDetail extends Component {
 
     render() {
         return (
-            <div>
+            <div className='containerHtml'>
                 {this.state.libro && (
                     <div>
                         <table border="1px">
@@ -80,7 +86,7 @@ class BookDetail extends Component {
                                                 src="https://www.shutterstock.com/image-vector/user-profile-icon-vector-avatar-600nw-2247726673.jpg"
                                                 alt=""
                                                 width="200px"
-                                                height="200px"                                            />
+                                                height="200px" />
                                         )}
                                     </td>
                                 </tr>
@@ -89,16 +95,16 @@ class BookDetail extends Component {
                                     <td>{this.state.libro.paginas}</td>
                                 </tr>
                                 <tr>
-                                <td>
-                                    <Link to={`/libro/update/${this.state.libro._id}`}>
-                                        Actualizar
-                                    </Link>
-                                </td>
-                                <td>
-                                    <button onClick={() => this.deleteLibroById(this.state.libro._id)}>
-                                        Eliminar
-                                    </button>
-                                </td>
+                                    <td>
+                                        <button onClick={() => this.goUpdate(this.state.libro._id)} className='btnActualizar'>
+                                            Actualizar
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <button onClick={() => this.deleteLibroById(this.state.libro._id)}>
+                                            Eliminar
+                                        </button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -108,7 +114,7 @@ class BookDetail extends Component {
                     <div>
                         <h2>Libro no encontrado</h2>
                         <h3>Intenta más tarde</h3>
-                        <Link to="/libro/list">Regresar</Link>
+                        <NavLink to="/libro/list">Regresar</NavLink>
                     </div>
                 )}
                 {this.state.status === null && (
